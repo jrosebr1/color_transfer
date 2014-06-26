@@ -3,7 +3,7 @@ Super fast color transfer between images
 
 The <code>color_transfer</code> package is an OpenCV and Python implementation based (loosely) on [*Color Transfer between Images*](http://www.thegooch.org/Publications/PDFs/ColorTransfer.pdf) [Reinhard et al., 2001] The algorithm itself is extremely efficient (much faster than histogram based methods), requiring only the mean and standard deviation of pixel intensities for each channel in the L\*a\*b\* color space.
 
-For more information, along with a detailed code review, take a look at this post on my blog: LINK.
+For more information, along with a detailed code review, [take a look at this post on my blog](https://www.pyimagesearch.com/2014/06/30/super-fast-color-transfer-images/).
 
 #Requirements
 - OpenCV
