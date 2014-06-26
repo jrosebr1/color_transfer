@@ -20,10 +20,10 @@ From there, there easiest way to install is via pip:
 Below are some examples showing how to run the <code>example.py</code> demo and the associated color transfers between images.
 
 <code>$ python example.py --source images/autumn.jpg --target images/fallingwater.jpg</code>
-![image](docs/images/autumn_fallingwater.png =500x)
+![Autumn and Fallingwater screenshot](docs/images/autumn_fallingwater.png?raw=true)
 
 <code>$ python example.py --source images/woods.jpg --target images/storm.jpg</code>
-![image](docs/images/woods_storm.png =500x)
+![Woods and Storm screenshot](docs/images/woods_storm.png?raw=true)
 
 <code>$ python example.py --source images/ocean_sunset.jpg --target images/ocean_day.jpg</code>
-![image](docs/images/sunset_ocean.png =500x)
+![Sunset and Ocean screenshot](docs/images/sunset_ocean.png?raw=true)
