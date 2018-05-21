@@ -107,9 +107,9 @@ def _min_max_scale(arr, new_range=(0, 255)):
 	[new_range[0], new_range[1]] range
 	"""
 	# get array's current min and max
-	mn = arr.min(axis=0)
-	mx = arr.max(axis=0)
-	
+	mn = arr.min()
+	mx = arr.max()
+
 	# check if scaling needs to be done to be in new_range
 	if mn < new_range[0] or mx > new_range[1]:
 		# perform min-max scaling
@@ -122,14 +122,14 @@ def _min_max_scale(arr, new_range=(0, 255)):
 
 def _scale_array(arr, clip=True):
 	"""
-	Trim NumPy array values to be in [0, 255] range with option of 
+	Trim NumPy array values to be in [0, 255] range with option of
 	clipping or scaling.
 
 	Parameters:
 	-------
 	arr: array to be trimmed to [0, 255] range
-	clip: should array be scaled by np.clip? if False then input 
-		array will be min-max scaled to range 
+	clip: should array be scaled by np.clip? if False then input
+		array will be min-max scaled to range
 		[max([arr.min(), 0]), min([arr.max(), 255])]
 
 	Returns:
@@ -139,7 +139,7 @@ def _scale_array(arr, clip=True):
 	if clip:
 		scaled = np.clip(arr, 0, 255)
 	else:
-		scale_range = (max([arr.min(axis=0), 0]), min([arr.max(axis=0), 255]))
+		scale_range = (max([arr.min(), 0]), min([arr.max(), 255]))
 		scaled = _min_max_scale(arr, new_range=scale_range)
 
 	return scaled
