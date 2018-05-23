@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 
-def color_transfer(source, target):
+def color_transfer(source, target, clip=True, preserve_paper=True):
 	"""
 	Transfers the color distribution from the source to the target
 	image using the mean and standard deviations of the L*a*b*
@@ -17,6 +17,18 @@ def color_transfer(source, target):
 		OpenCV image in BGR color space (the source image)
 	target: NumPy array
 		OpenCV image in BGR color space (the target image)
+	clip: Should components of L*a*b* image be scaled by np.clip before 
+		converting back to BGR color space?
+		If False then components will be min-max scaled appropriately.
+		Clipping will keep target image brightness truer to the input.
+		Scaling will adjust image brightness to avoid washed out portions
+		in the resulting color transfer that can be caused by clipping.
+	preserve_paper: Should color transfer strictly follow methodology
+		layed out in original paper? The method does not always produce
+		aesthetically pleasing results.
+		If False then L*a*b* components will scaled using the reciprocal of
+		the scaling factor proposed in the paper.  This method seems to produce
+		more consistently aesthetically pleasing results 
 
 	Returns:
 	-------
@@ -39,21 +51,27 @@ def color_transfer(source, target):
 	a -= aMeanTar
 	b -= bMeanTar
 
-	# scale by the standard deviations
-	l = (lStdTar / lStdSrc) * l
-	a = (aStdTar / aStdSrc) * a
-	b = (bStdTar / bStdSrc) * b
+	if preserve_paper:
+		# scale by the standard deviations using paper proposed factor
+		l = (lStdTar / lStdSrc) * l
+		a = (aStdTar / aStdSrc) * a
+		b = (bStdTar / bStdSrc) * b
+	else:
+		# scale by the standard deviations using reciprocal of paper proposed factor
+		l = (lStdSrc / lStdTar) * l
+		a = (aStdSrc / aStdTar) * a
+		b = (bStdSrc / bStdTar) * b
 
 	# add in the source mean
 	l += lMeanSrc
 	a += aMeanSrc
 	b += bMeanSrc
 
-	# clip the pixel intensities to [0, 255] if they fall outside
-	# this range
-	l = np.clip(l, 0, 255)
-	a = np.clip(a, 0, 255)
-	b = np.clip(b, 0, 255)
+	# clip/scale the pixel intensities to [0, 255] if they fall
+	# outside this range
+	l = _scale_array(l, clip=clip)
+	a = _scale_array(a, clip=clip)
+	b = _scale_array(b, clip=clip)
 
 	# merge the channels together and convert back to the RGB color
 	# space, being sure to utilize the 8-bit unsigned integer data
@@ -84,3 +102,56 @@ def image_stats(image):
 
 	# return the color statistics
 	return (lMean, lStd, aMean, aStd, bMean, bStd)
+
+def _min_max_scale(arr, new_range=(0, 255)):
+	"""
+	Perform min-max scaling to a NumPy array
+
+	Parameters:
+	-------
+	arr: NumPy array to be scaled to [new_min, new_max] range
+	new_range: tuple of form (min, max) specifying range of
+		transformed array
+
+	Returns:
+	-------
+	NumPy array that has been scaled to be in
+	[new_range[0], new_range[1]] range
+	"""
+	# get array's current min and max
+	mn = arr.min()
+	mx = arr.max()
+
+	# check if scaling needs to be done to be in new_range
+	if mn < new_range[0] or mx > new_range[1]:
+		# perform min-max scaling
+		scaled = (new_range[1] - new_range[0]) * (arr - mn) / (mx - mn) + new_range[0]
+	else:
+		# return array if already in range
+		scaled = arr
+
+	return scaled
+
+def _scale_array(arr, clip=True):
+	"""
+	Trim NumPy array values to be in [0, 255] range with option of
+	clipping or scaling.
+
+	Parameters:
+	-------
+	arr: array to be trimmed to [0, 255] range
+	clip: should array be scaled by np.clip? if False then input
+		array will be min-max scaled to range
+		[max([arr.min(), 0]), min([arr.max(), 255])]
+
+	Returns:
+	-------
+	NumPy array that has been scaled to be in [0, 255] range
+	"""
+	if clip:
+		scaled = np.clip(arr, 0, 255)
+	else:
+		scale_range = (max([arr.min(), 0]), min([arr.max(), 255]))
+		scaled = _min_max_scale(arr, new_range=scale_range)
+
+	return scaled
