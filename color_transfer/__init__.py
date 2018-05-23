@@ -2,7 +2,7 @@
 import numpy as np
 import cv2
 
-def color_transfer(source, target, clip=True):
+def color_transfer(source, target, clip=True, preserve_paper=True):
 	"""
 	Transfers the color distribution from the source to the target
 	image using the mean and standard deviations of the L*a*b*
@@ -23,6 +23,12 @@ def color_transfer(source, target, clip=True):
 		Clipping will keep target image brightness truer to the input.
 		Scaling will adjust image brightness to avoid washed out portions
 		in the resulting color transfer that can be caused by clipping.
+	preserve_paper: Should color transfer strictly follow methodology
+		layed out in original paper? The method does not always produce
+		aesthetically pleasing results.
+		If False then L*a*b* components will scaled using the reciprocal of
+		the scaling factor proposed in the paper.  This method seems to produce
+		more consistently aesthetically pleasing results 
 
 	Returns:
 	-------
@@ -45,10 +51,16 @@ def color_transfer(source, target, clip=True):
 	a -= aMeanTar
 	b -= bMeanTar
 
-	# scale by the standard deviations
-	l = (lStdTar / lStdSrc) * l
-	a = (aStdTar / aStdSrc) * a
-	b = (bStdTar / bStdSrc) * b
+	if preserve_paper:
+		# scale by the standard deviations using paper proposed factor
+		l = (lStdTar / lStdSrc) * l
+		a = (aStdTar / aStdSrc) * a
+		b = (bStdTar / bStdSrc) * b
+	else:
+		# scale by the standard deviations using reciprocal of paper proposed factor
+		l = (lStdSrc / lStdTar) * l
+		a = (aStdSrc / aStdTar) * a
+		b = (bStdSrc / bStdTar) * b
 
 	# add in the source mean
 	l += lMeanSrc
